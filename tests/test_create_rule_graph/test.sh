@@ -25,4 +25,5 @@ snakemake \
     --configfile="../input_files/config.yaml" \
     --rulegraph \
     --quiet="all" \
+    | awk '/^digraph/{f=1} f{print}' \
     | dot -Tsvg > "../../images/rule_graph.svg"

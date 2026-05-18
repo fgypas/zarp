@@ -25,4 +25,5 @@ snakemake \
     --configfile="../input_files/config.yaml" \
     --dag \
     --quiet="all" \
+    | awk '/^digraph/{f=1} f{print}' \
     | dot -Tsvg > "../../images/dag_test_workflow.svg"
