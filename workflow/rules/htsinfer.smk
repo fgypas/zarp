@@ -32,12 +32,18 @@ current_rule = "run_htsinfer"
 
 
 rule run_htsinfer:
-    """ Run htsinfer on fastq samples    
-    """
+    """Run htsinfer on fastq samples"""
     input:
         fq1_path=lambda wildcards: samples.loc[wildcards.sample, "fq1"],
     output:
         htsinfer_json=os.path.join(OUT_DIR, "htsinfer_{sample}.json"),
+    log:
+        stderr=os.path.join(LOG_DIR, "{sample}", current_rule + ".stderr.log"),
+    conda:
+        os.path.join(workflow.basedir, "..", "envs", "htsinfer.yaml")
+    container:
+        "docker://quay.io/biocontainers/htsinfer:0.11.0--pyhdfd78af_1"
+    threads: 4
     params:
         fq2_path=lambda wildcards: (
             samples.loc[wildcards.sample, "fq2"]
@@ -47,13 +53,6 @@ rule run_htsinfer:
         records=config["records"],
         outdir=OUT_DIR,
         cluster_log_path=CLUSTER_LOG,
-    threads: 4
-    container:
-        "docker://quay.io/biocontainers/htsinfer:0.11.0--pyhdfd78af_1"
-    conda:
-        os.path.join(workflow.basedir, "..", "envs", "htsinfer.yaml")
-    log:
-        stderr=os.path.join(LOG_DIR, "{sample}", current_rule + ".stderr.log"),
     shell:
         """
         set +e 
@@ -80,13 +79,13 @@ rule htsinfer_to_tsv:
         script=os.path.join(workflow.basedir, "..", "scripts", "htsinfer_to_tsv.py"),
     output:
         SAMPLES_OUT,
-    threads: 4
-    container:
-        "docker://quay.io/biocontainers/htsinfer:0.11.0--pyhdfd78af_1"
-    conda:
-        os.path.join(workflow.basedir, "..", "envs", "htsinfer.yaml")
     log:
         stderr=os.path.join(LOG_DIR, current_rule + ".stderr.log"),
+    conda:
+        os.path.join(workflow.basedir, "..", "envs", "htsinfer.yaml")
+    container:
+        "docker://quay.io/biocontainers/htsinfer:0.11.0--pyhdfd78af_1"
+    threads: 4
     shell:
         """
         python {input.script} \

@@ -27,12 +27,6 @@ checkpoint get_layout:
     "Get the library type of each sample (paired or single-end)."
     output:
         outdir=directory(os.path.join(config["outdir"], "get_layout", "{sample}")),
-    params:
-        cluster_log_path=config["cluster_log_dir"],
-    conda:
-        os.path.join(workflow.basedir, "..", "envs", "entrez-direct.yaml")
-    container:
-        "docker://quay.io/biocontainers/entrez-direct:16.2--he881be0_1"
     log:
         stderr=os.path.join(
             config["log_dir"], "samples", "{sample}", "get_layout.stderr.log"
@@ -40,6 +34,12 @@ checkpoint get_layout:
         stdout=os.path.join(
             config["log_dir"], "samples", "{sample}", "get_layout.stdout.log"
         ),
+    conda:
+        os.path.join(workflow.basedir, "..", "envs", "entrez-direct.yaml")
+    container:
+        "docker://quay.io/biocontainers/entrez-direct:16.2--he881be0_1"
+    params:
+        cluster_log_path=config["cluster_log_dir"],
     shell:
         """
         (mkdir -p {output.outdir}; \
@@ -59,13 +59,6 @@ rule prefetch:
     "Prefetch SRA entry. Requires internet access."
     output:
         outdir=directory(os.path.join(config["outdir"], "prefetch", "{sample}")),
-    params:
-        cluster_log_path=config["cluster_log_dir"],
-        outdir=os.path.join(config["outdir"], "prefetch"),
-    conda:
-        os.path.join(workflow.basedir, "..", "envs", "sra-tools.yaml")
-    container:
-        "docker://quay.io/biocontainers/sra-tools:3.0.10--h9f5acd7_0"
     log:
         stderr=os.path.join(
             config["log_dir"], "samples", "{sample}", "prefetch.stderr.log"
@@ -73,6 +66,13 @@ rule prefetch:
         stdout=os.path.join(
             config["log_dir"], "samples", "{sample}", "prefetch.stdout.log"
         ),
+    conda:
+        os.path.join(workflow.basedir, "..", "envs", "sra-tools.yaml")
+    container:
+        "docker://quay.io/biocontainers/sra-tools:3.0.10--h9f5acd7_0"
+    params:
+        cluster_log_path=config["cluster_log_dir"],
+        outdir=os.path.join(config["outdir"], "prefetch"),
     shell:
         """
         (mkdir -p {params.outdir}; \

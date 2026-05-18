@@ -3,8 +3,8 @@ current_rule = "remove_adapters_cutadapt"
 
 rule remove_adapters_cutadapt:
     """
-        Remove adapters
-    """
+Remove adapters
+"""
     input:
         reads=os.path.join(
             config["output_dir"],
@@ -24,6 +24,28 @@ rule remove_adapters_cutadapt:
                 "{sample}.fq1.se.remove_adapters.fastq.gz",
             )
         ),
+    log:
+        stderr=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stderr.log",
+        ),
+        stdout=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stdout.log",
+        ),
+    conda:
+        os.path.join(workflow.basedir, "envs", "cutadapt.yaml")
+    container:
+        "docker://quay.io/biocontainers/cutadapt:4.6--py310h4b81fae_1"
+    threads: 4
+    resources:
+        mem_mb=lambda wildcards, attempt: 5000 * attempt,
     params:
         cluster_log_path=config["cluster_log_dir"],
         adapters_3=lambda wildcards: get_sample(
@@ -44,28 +66,6 @@ rule remove_adapters_cutadapt:
                 "-p",
             ),
         ),
-    container:
-        "docker://quay.io/biocontainers/cutadapt:4.6--py310h4b81fae_1"
-    conda:
-        os.path.join(workflow.basedir, "envs", "cutadapt.yaml")
-    threads: 4
-    resources:
-        mem_mb=lambda wildcards, attempt: 5000 * attempt,
-    log:
-        stderr=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stderr.log",
-        ),
-        stdout=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stdout.log",
-        ),
     shell:
         "(cutadapt \
         -j {threads} \
@@ -83,8 +83,8 @@ current_rule = "remove_polya_cutadapt"
 
 rule remove_polya_cutadapt:
     """
-        Remove ployA  tails
-    """
+Remove ployA  tails
+"""
     input:
         reads=os.path.join(
             config["output_dir"],
@@ -103,6 +103,28 @@ rule remove_polya_cutadapt:
                 "{sample}.fq1.se.remove_polya.fastq.gz",
             )
         ),
+    log:
+        stderr=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stderr.log",
+        ),
+        stdout=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stdout.log",
+        ),
+    conda:
+        os.path.join(workflow.basedir, "envs", "cutadapt.yaml")
+    container:
+        "docker://quay.io/biocontainers/cutadapt:4.6--py310h4b81fae_1"
+    threads: 4
+    resources:
+        mem_mb=lambda wildcards, attempt: 5000 * attempt,
     params:
         cluster_log_path=config["cluster_log_dir"],
         polya_3=lambda wildcards: get_sample(
@@ -123,28 +145,6 @@ rule remove_polya_cutadapt:
                 "-p",
             ),
         ),
-    container:
-        "docker://quay.io/biocontainers/cutadapt:4.6--py310h4b81fae_1"
-    conda:
-        os.path.join(workflow.basedir, "envs", "cutadapt.yaml")
-    threads: 4
-    resources:
-        mem_mb=lambda wildcards, attempt: 5000 * attempt,
-    log:
-        stderr=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stderr.log",
-        ),
-        stdout=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stdout.log",
-        ),
     shell:
         "(cutadapt \
         -j {threads} \
@@ -162,8 +162,8 @@ current_rule = "map_genome_star"
 
 rule map_genome_star:
     """
-        Map to genome using STAR
-    """
+Map to genome using STAR
+"""
     input:
         index=lambda wildcards: os.path.join(
             config["star_indexes"],
@@ -196,8 +196,23 @@ rule map_genome_star:
             "map_genome",
             "{sample}.se.Log.final.out",
         ),
+    log:
+        stderr=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stderr.log",
+        ),
     shadow:
         "minimal"
+    conda:
+        os.path.join(workflow.basedir, "envs", "STAR.yaml")
+    container:
+        "docker://quay.io/biocontainers/star:2.7.11b--h43eeafb_0"
+    threads: 12
+    resources:
+        mem_mb=lambda wildcards, attempt: 32000 * attempt,
     params:
         cluster_log_path=config["cluster_log_dir"],
         sample_id="{sample}",
@@ -228,21 +243,6 @@ rule map_genome_star:
                 "--outSAMattrRGline",
             ),
         ),
-    container:
-        "docker://quay.io/biocontainers/star:2.7.11b--h43eeafb_0"
-    conda:
-        os.path.join(workflow.basedir, "envs", "STAR.yaml")
-    threads: 12
-    resources:
-        mem_mb=lambda wildcards, attempt: 32000 * attempt,
-    log:
-        stderr=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stderr.log",
-        ),
     shell:
         "(STAR \
         --runThreadN {threads} \
@@ -264,8 +264,8 @@ current_rule = "quantification_salmon"
 
 rule quantification_salmon:
     """
-        Quantification at transcript and gene level using Salmon
-    """
+Quantification at transcript and gene level using Salmon
+"""
     input:
         reads=os.path.join(
             config["output_dir"],
@@ -320,8 +320,30 @@ rule quantification_salmon:
             "libParams",
             "flenDist.txt",
         ),
+    log:
+        stderr=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stderr.log",
+        ),
+        stdout=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stdout.log",
+        ),
     shadow:
         "minimal"
+    conda:
+        os.path.join(workflow.basedir, "envs", "salmon.yaml")
+    container:
+        "docker://quay.io/biocontainers/salmon:1.10.2--hecfa306_0"
+    threads: 6
+    resources:
+        mem_mb=lambda wildcards, attempt: 32000 * attempt,
     params:
         cluster_log_path=config["cluster_log_dir"],
         output_dir=lambda wildcards, output: os.path.dirname(output.tr_estimates),
@@ -347,28 +369,6 @@ rule quantification_salmon:
                 "-o",
             ),
         ),
-    container:
-        "docker://quay.io/biocontainers/salmon:1.10.2--hecfa306_0"
-    conda:
-        os.path.join(workflow.basedir, "envs", "salmon.yaml")
-    threads: 6
-    resources:
-        mem_mb=lambda wildcards, attempt: 32000 * attempt,
-    log:
-        stderr=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stderr.log",
-        ),
-        stdout=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stdout.log",
-        ),
     shell:
         "(salmon quant \
         --libType {params.libType} \
@@ -388,8 +388,8 @@ current_rule = "genome_quantification_kallisto"
 
 rule genome_quantification_kallisto:
     """
-        Quantification at transcript and gene level using Kallisto
-    """
+Quantification at transcript and gene level using Kallisto
+"""
     input:
         reads=os.path.join(
             config["output_dir"],
@@ -420,8 +420,23 @@ rule genome_quantification_kallisto:
             "quant_kallisto",
             "abundance.h5",
         ),
+    log:
+        stderr=os.path.join(
+            config["log_dir"],
+            "{organism}",
+            "samples",
+            "{sample}",
+            current_rule + ".se.stderr.log",
+        ),
     shadow:
         "minimal"
+    conda:
+        os.path.join(workflow.basedir, "envs", "kallisto.yaml")
+    container:
+        "docker://quay.io/biocontainers/kallisto:0.48.0--h15996b6_2"
+    threads: 8
+    resources:
+        mem_mb=lambda wildcards, attempt: 6000 * attempt,
     params:
         cluster_log_path=config["cluster_log_dir"],
         output_dir=lambda wildcards, output: os.path.dirname(output.pseudoalignment),
@@ -448,21 +463,6 @@ rule genome_quantification_kallisto:
                 "--fr-stranded",
                 "--rf-stranded",
             ),
-        ),
-    container:
-        "docker://quay.io/biocontainers/kallisto:0.48.0--h15996b6_2"
-    conda:
-        os.path.join(workflow.basedir, "envs", "kallisto.yaml")
-    threads: 8
-    resources:
-        mem_mb=lambda wildcards, attempt: 6000 * attempt,
-    log:
-        stderr=os.path.join(
-            config["log_dir"],
-            "{organism}",
-            "samples",
-            "{sample}",
-            current_rule + ".se.stderr.log",
         ),
     shell:
         "(kallisto quant \
